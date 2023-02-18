@@ -1,5 +1,8 @@
 
 from heapq import *
+import networkx as nx
+import matplotlib.pyplot as plt
+
 
 def voisin(graph,x):
     """fonction qui renvoie une liste de couple formée des voisins de x et leur distance"""
@@ -10,6 +13,7 @@ def voisin(graph,x):
         else:
             vois.append((i[0],i[2]))
     return vois
+
 
 
 class Graph:
@@ -196,8 +200,23 @@ class Graph:
                     paths=self.find_path(src,dest)
                     power_needed =[]
                     for chemin in paths:
-                        power_needed.append(chemin[1]) #chemin[1] est la puissance maximale requise pour le chemin 
+                        power_needed.append(chemin[1]) #chemin[1] est la puissance maximale requise pour le chemin
                     return min(power_needed)
+
+
+    def draw_graph(self):
+        G = nx.Graph()
+        for node in self.graph:
+            neighbors = self.graph[node]
+            G.add_node(node)
+            for neighbor in neighbors:
+                G.add_edge(node, neighbor[0], weight=neighbor[1])
+        pos = nx.spring_layout(G)
+        nx.draw_networkx_nodes(G, pos)
+        nx.draw_networkx_edges(G, pos)
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=nx.get_edge_attributes(G, 'weight'))
+        nx.draw_networkx_labels(G, pos)
+        plt.show()
 
 def graph_from_file(filename):
     """
