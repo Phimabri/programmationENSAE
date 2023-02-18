@@ -55,57 +55,59 @@ class Graph:
 
     def get_path_with_power(self, src, dest, power):
         """regarder si src et dest sont dans la même composante connexe
-        on suppose qu'ils sont dans la même composante connexe (ce qui nous garantit qu'on arrive à dest)"""
-        M = set()
-        d = {src: 0}
-        p = {}
-        suivants = [(0, src)] #Â tas de couples (d[x],x)
-
-        while suivants != []:
-            dx, x = heappop(suivants)
-            vois=voisin(self.graph,x)
-            if x in M:
-                continue
-
-            M.add(x)
-
-            for y,w in vois:
-                if w>power :
-                    if suivants==[]:
-                        continue
-                    else:
-                        a,b=heappop(suivants) #si la puissance n'est pas suffisante on n'explore pas ce passage
+        s'ils sont dans la même composante connexe cela nous garantit que l'algo s'arrête car on atteindra la destination
+        (sous réserve de ne pas tourner en rond : il faudra donc enregistrer les noeuds deja visités)"""
+        cc=self.connected_components()
+        for i in cc:
+            if src in i :
+                if dest not in i:
+                    return None,None
                 else:
-                    if y in M:
-                        continue
-                    dy = dx + w
-                    if y not in d or d[y] > dy:
-                        d[y] = dy
-                        heappush(suivants, (dy, y))
-                        p[y] = x
 
-        path = [dest]
-        x = dest
-        if dest not in p: #s'il n'existe aucun chemin admettant une distance suffisante on renvoie une liste vide
-            return 0,[]
-        while x != src:
-            x = p[x]
-            path.insert(0, x)
+                    """ on applique ensuite une version de l'algo de Dijkstra modulo le fait qu'on ajoute le noeud seulement
+                    si la puissance le permet """
+                    M = set()
+                    d = {src: 0}
+                    p = {}
+                    suivants = [(0, src)] # tas de couples (d[x],x)
 
-        return d[dest], path
+                    while suivants != []:
+                        dx, x = heappop(suivants)
+                        vois=voisin(self.graph,x)
+                        """ on regarde les voisins du noeud. Ils sont renvoyés sous la forme (x,d[x]) """
+                        if x in M:
+                            continue
 
+                        M.add(x)
 
+                        for y,w in vois:
+                            """ on applique ici la condition de puissance minimum """
+                            if w>power :
+                                if suivants==[]:
+                                    continue
+                                else:
+                                    a,b=heappop(suivants) #si la puissance n'est pas suffisante on n'explore pas ce passage
+                            else:
+                                if y in M:
+                                    continue
+                                dy = dx + w
+                                if y not in d or d[y] > dy:
+                                    d[y] = dy
+                                    heappush(suivants, (dy, y))
+                                    p[y] = x
 
-    def path_rec(self,src,dest,power,path,visited_nodes):
-        for nodes in self.graph[src]:
-            node=nodes[0]
-            if node == dest and nodes[1]<power :
-                return path
-            elif nodes[1]<power and node not in visited_nodes:
-                visited_nodes.append(node)
-                path.append(node)
-                path_rec(self,node,power,path,visited_nodes)
-        return []
+                    path = [dest]
+                    x = dest
+                    if dest not in p: #s'il n'existe aucun chemin admettant une distance suffisante on renvoie une liste vide
+                        return None,None
+                    while x != src:
+                        x = p[x]
+                        path.insert(0, x)
+
+                    return d[dest], path
+
+        return None,None
+
 
 
     def connected_components(self):
@@ -138,33 +140,64 @@ class Graph:
         """
         return set(map(frozenset, self.connected_components()))
 
+
+
+
+
+    def find_path(self, src, dest, path=[],puissance=0):
+
+        """ fonction utile pour calculer min_power plus tard"""
+
+        """ fonction qui renvoie l'ensemble des chemins possibles allant de src à dest (sans contrainte de puissance)
+        sous forme de liste de couple (chemin,max puissance requis pour passer par ce chemin)"""
+        # Ajouter le noeud de départ au chemin
+        path = path + [(src,puissance)]
+        # Si le noeud de départ est le même que le noeud d'arrivée, retourner le chemin et la puissance max du chemin
+        if src == dest:
+            max=path[0][1]
+            for i,j in path:
+                if j>max:
+                    max=j
+
+            return [[path,max]]
+        # Si le noeud de départ n'est pas dans le graphe, retourner une liste vide
+        if src not in self.graph:
+            return []
+
+        # Initialiser une liste vide pour stocker tous les chemins possibles
+        possible_paths = []
+
+        # Explorer tous les voisins du noeud de départ
+        for voisin in self.graph[src]:
+            # Vérifier si le voisin n'est pas déjà dans le chemin
+            deja_vu=False
+            for i,j in path :
+                if voisin[0]==i:
+                    deja_vu=True
+                # Récursivement explorer le voisin et ajouter tous les chemins possibles dans la liste
+            if deja_vu==False:
+                new_paths = self.find_path(voisin[0], dest, path,voisin[1])
+                for n_path in new_paths:
+                    possible_paths.append(n_path)
+
+        # Retourner tous les chemins possibles
+        return possible_paths
+
     def min_power(self, src, dest):
-        """regarder si src et dest sont dans la même composante connexe
-        on suppose qu'ils sont dans la même composante connexe (ce qui nous garantit qu'on arrive à dest)"""
-        M = set()
-        d = {src:0 }
-        p = {}
-        suivants = [(0, src)] #tas de couples (d[x],x)
-
-        while suivants != []:
-            dx, x = heappop(suivants)
-            vois=[(i[0],i[1]) for i in self.graph[src]]
-            if x in M:
-                continue
-
-            M.add(x)
-
-            for y,w in vois:
-                if y in M:
-                    continue
-                dy = max(dx,w)
-                if y not in d or d[y] > dy:
-                    d[y] = dy
-                    heappush(suivants, (dy, y))
-                    p[y] = x
-        print(d)
-
-
+        """ avec la fonction find_path on va trouver tous les chemins allant de src à dest
+        puis on va pour chacun de ces chemins regarder le puissance maximale nécessaire pour l'emprunter
+        on prendra alors le min des puissances de tous les chemins pour connaitre la puissance minimale requise"""
+        cc=self.connected_components()
+        for i in cc:
+            if src in i :
+                if dest not in i:
+                    return None
+                else:
+                    paths=self.find_path(src,dest)
+                    power_needed =[]
+                    for chemin in paths:
+                        power_needed.append(chemin[1]) #chemin[1] est la puissance maximale requise pour le chemin 
+                    return min(power_needed)
 
 def graph_from_file(filename):
     """
