@@ -24,6 +24,7 @@ class Graph:
         self.nb_edges = 0
 
 
+
     def __str__(self):
         """Prints the graph as a list of neighbors for each node (one per line)"""
         if not self.graph:
@@ -112,6 +113,49 @@ class Graph:
 
         return None,None
 
+    def get_path_with_power_without_cc(self, src, dest, power):
+        "dans cette version on ne vérifie pas que la source et la destination appartiennent à la même composante connexe"
+        "c'est utile pour la deuxieme séance"
+        M = set()
+        d = {src: 0}
+        p = {}
+        suivants = [(0, src)] # tas de couples (d[x],x)
+
+        while suivants != []:
+            dx, x = heappop(suivants)
+            vois=voisin(self.graph,x)
+            """ on regarde les voisins du noeud. Ils sont renvoyés sous la forme (x,d[x]) """
+            if x in M:
+                continue
+
+            M.add(x)
+
+            for y,w in vois:
+                """ on applique ici la condition de puissance minimum """
+                if w>power :
+                    if suivants==[]:
+                        continue
+                    else:
+                        a,b=heappop(suivants) #si la puissance n'est pas suffisante on n'explore pas ce passage
+                else:
+                    if y in M:
+                        continue
+                    dy = dx + w
+                    if y not in d or d[y] > dy:
+                        d[y] = dy
+                        heappush(suivants, (dy, y))
+                        p[y] = x
+
+        path = [dest]
+        x = dest
+        if dest not in p: #s'il n'existe aucun chemin admettant une distance suffisante on renvoie une liste vide
+            return None,None
+        while x != src:
+            x = p[x]
+            path.insert(0, x)
+
+        return d[dest], path
+
 
 
     def connected_components(self):
@@ -192,16 +236,31 @@ class Graph:
         puis on va pour chacun de ces chemins regarder le puissance maximale nécessaire pour l'emprunter
         on prendra alors le min des puissances de tous les chemins pour connaitre la puissance minimale requise"""
         cc=self.connected_components()
+
         for i in cc:
             if src in i :
                 if dest not in i:
-                    return None
+                    return None,None
                 else:
                     paths=self.find_path(src,dest)
-                    power_needed =[]
+                    min=paths[0][1]
+                    chemin_minimal=paths[0][0]
                     for chemin in paths:
-                        power_needed.append(chemin[1]) #chemin[1] est la puissance maximale requise pour le chemin
-                    return min(power_needed)
+                         if chemin[1]<min:#chemin[1] est la puissance maximale requise pour le chemin
+                            min=chemin[1]
+                            chemin_minimal=chemin[0]
+                    return [i for i,j in chemin_minimal],min
+
+    def min_power_without_cc(self,src,dest):
+        "fonction qui renvoie min power sans vérifier que source et dest soient dans la même cc"
+        paths=self.find_path(src,dest)
+        min=paths[0][1]
+        chemin_minimal=paths[0][0]
+        for chemin in paths:
+             if chemin[1]<min:#chemin[1] est la puissance maximale requise pour le chemin
+                min=chemin[1]
+                chemin_minimal=chemin[0]
+        return [i for i,j in chemin_minimal],min
 
 
     def draw_graph(self):

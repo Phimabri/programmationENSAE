@@ -1,5 +1,5 @@
 # This will work if ran from the root folder.
-import sys 
+import sys
 sys.path.append("delivery_network")
 
 from graph import graph_from_file
