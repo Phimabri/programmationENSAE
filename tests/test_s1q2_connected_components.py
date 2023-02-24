@@ -1,5 +1,5 @@
 # This will work if ran from the root folder.
-import sys 
+import sys
 sys.path.append("delivery_network")
 
 from graph import Graph, graph_from_file
@@ -16,16 +16,16 @@ class Test_GraphCC(unittest.TestCase):
         g = graph_from_file("input/network.01.in")
         cc = g.connected_components_set()
         self.assertEqual(cc, {frozenset({1, 2, 3}), frozenset({4, 5, 6, 7})})
-        
+
     def test_network02(self):
         g = graph_from_file("input/network.02.in")
         cc = g.connected_components_set()
-        self.assertEqual(cc,{frozenset({1,2,3,4}))
-                             
+        self.assertEqual(cc,{frozenset({1,2,3,4})})
+
     def test_network03(self):
         g = graph_from_file("input/network.03.in")
         cc = g.connected_components_set()
-        self.assertEqual(cc,{frozenset({1,2,3,4}))
+        self.assertEqual(cc,{frozenset({1,2,3,4})})
 
 if __name__ == '__main__':
     unittest.main()
