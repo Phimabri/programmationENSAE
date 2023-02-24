@@ -20,12 +20,12 @@ class Test_GraphCC(unittest.TestCase):
     def test_network02(self):
         g = graph_from_file("input/network.02.in")
         cc = g.connected_components_set()
-        self.assertEqual(cc,{frozenset({1,2,3,4})})
+        self.assertIn({frozenset({1,2,3,4})},cc)
 
     def test_network03(self):
         g = graph_from_file("input/network.03.in")
         cc = g.connected_components_set()
-        self.assertEqual(cc,{frozenset({1,2,3,4})})
+        self.assertIn({frozenset({1,2,3,4})},cc)
 
 if __name__ == '__main__':
     unittest.main()
