@@ -5,15 +5,25 @@ import matplotlib.pyplot as plt
 
 
 def voisin(graph,x):
-    """fonction qui renvoie une liste de couple formée des voisins de x et leur distance"""
+    """fonction qui renvoie une liste de couple formée des voisins de x, de leur puissance et leur distance"""
     vois=[]
     for i in graph[x]:
-        if len(i)<3:
-            vois.append((i[0],1))
-        else:
-            vois.append((i[0],i[2]))
+        vois.append((i[0],i[1],i[2]))
     return vois
 
+def dfs(graph,src,dest,visited,power=0,pere=0):
+    """fonction qui fait un dfs pour trouver le chemin entre 2 neouds (src et dest)
+    Cette fonction renvoie une liste de couple formé du chemin et de la puissance nécessaire pour emprunter chaque arête """
+    visited.append((src,power))
+    if src==dest:
+        return visited
+    else :
+        for i in graph.graph[src]:
+            if i[0]!=pere:
+                result=dfs(graph,i[0],dest,visited,i[1],pere=src)
+                if result !=None:
+                     return result
+        return None
 
 
 class Graph:
@@ -79,19 +89,16 @@ class Graph:
                     while suivants != []:
                         dx, x = heappop(suivants)
                         vois=voisin(self.graph,x)
-                        """ on regarde les voisins du noeud. Ils sont renvoyés sous la forme (x,d[x]) """
+                        """ on regarde les voisins du noeud. Ils sont renvoyés sous la forme (x,pow,d[x]) """
                         if x in M:
                             continue
 
                         M.add(x)
 
-                        for y,w in vois:
+                        for y,pow,w in vois:
                             """ on applique ici la condition de puissance minimum """
-                            if w>power :
-                                if suivants==[]:
-                                    continue
-                                else:
-                                    a,b=heappop(suivants) #si la puissance n'est pas suffisante on n'explore pas ce passage
+                            if pow>power :
+                                continue #si la puissance n'est pas suffisante on n'explore pas ce passage
                             else:
                                 if y in M:
                                     continue
@@ -100,7 +107,6 @@ class Graph:
                                     d[y] = dy
                                     heappush(suivants, (dy, y))
                                     p[y] = x
-
                     path = [dest]
                     x = dest
                     if dest not in p: #s'il n'existe aucun chemin admettant une distance suffisante on renvoie une liste vide
@@ -109,7 +115,7 @@ class Graph:
                         x = p[x]
                         path.insert(0, x)
 
-                    return d[dest], path
+                    return d[dest],path
 
         return None,None
 
@@ -130,9 +136,9 @@ class Graph:
 
             M.add(x)
 
-            for y,w in vois:
+            for y,pow,w in vois:
                 """ on applique ici la condition de puissance minimum """
-                if w>power :
+                if pow>power :
                     if suivants==[]:
                         continue
                     else:
@@ -159,6 +165,8 @@ class Graph:
 
 
     def connected_components(self):
+        """fonction qui renvoie l'ensemble des composantes connexes d'un graphe"""
+
         explored = [] #explored permettra de mémoriser les noeuds déjà vu
         res = [] #res permettra de stocker les différentes composantes connexes, ce sera donc une liste de liste de noeuds
         def connected(self,node,neighbors):
@@ -189,12 +197,82 @@ class Graph:
         return set(map(frozenset, self.connected_components()))
 
 
+    def exist_path(self,src,dest,power,visited):
+        """ fonction qui fait un dfs et renvoie s'il existe un chemin et si oui renvoie ce chemin"""
+        """ cette fonction est utlisée dans min_power"""
+        visited.append(src)
+        if src==dest:
+            return True, visited
+        else:
+            for i in self.graph[src]:
+                if i[0] not in visited:
+                    if i[1]<=power:
+                        result = self.exist_path(i[0],dest,power,visited)
+                        if result[0]:
+                            return result
+            return False,None
+
+    def min_power(self,src,dest):
+        """on commence par stocker toutes les puissances dans une liste"""
+        puissances_liste=[]
+        for i in self.graph:
+            for j in range(len(self.graph[i])):
+                puissances_liste.append(self.graph[i][j][1])
+
+        puissances_liste.sort()
+        """on va par dichotomie tester pour une puissance choisie s'il existe un chemin"""
+        path=None
+        debut=0
+        fin=len(puissances_liste)
+        puissances_exploree=[]
+        if fin%2==0:
+            while debut+1!=fin:
+                a=int((debut+fin)/2)
+                power=puissances_liste[a]
+                #puissances_exploree permet d'eviter de devoir parcourir tout le graphe à nouveau quand la puissance
+                # a deja ete exploree (car il y a des doublons dans la liste des puissances)
+                for i in puissances_exploree:
+                    if i[0]==power:
+                        if i[1]:
+                            fin=a
+                        else :
+                            debut=a
+                exist,chemin = self.exist_path(src,dest,power,[])
+                if exist==True:
+                    fin=a
+                    path=chemin
+                    puissances_exploree.append((power,True))
+                else :
+                    debut=a
+                    puissances_exploree.append((power,False))
+            return puissances_liste[a],path
+        else:
+            while debut+1!=fin:
+                a=int((debut+fin)/2)
+                power=puissances_liste[a]
+                for i in puissances_exploree:
+                    if i[0]==power:
+                        if i[1]:
+                            fin=a
+                        else :
+                            debut=a
+                exist,chemin=self.exist_path(src,dest,power,[])
+                if exist==True:
+                    fin=a
+                    path=chemin
+                    puissances_exploree.append((power,True))
+
+                else :
+                    debut=a
+                    puissances_exploree.append((power,False))
+
+            return puissances_liste[a],path
 
 
+    """ Les fonctions find path et min_power2 etaient une première approche pour min power mais la complexité
+    est beaucoup trop elevee donc on a refait min power"""
 
     def find_path(self, src, dest, path=[],puissance=0):
-
-        """ fonction utile pour calculer min_power plus tard"""
 
         """ fonction qui renvoie l'ensemble des chemins possibles allant de src à dest (sans contrainte de puissance)
         sous forme de liste de couple (chemin,max puissance requis pour passer par ce chemin)"""
@@ -231,7 +309,9 @@ class Graph:
         # Retourner tous les chemins possibles
         return possible_paths
 
-    def min_power(self, src, dest):
+    def min_power2(self, src, dest):
+        """Attention cette version a une complexité trop importante"""
+
         """ avec la fonction find_path on va trouver tous les chemins allant de src à dest
         puis on va pour chacun de ces chemins regarder le puissance maximale nécessaire pour l'emprunter
         on prendra alors le min des puissances de tous les chemins pour connaitre la puissance minimale requise"""
@@ -251,17 +331,9 @@ class Graph:
                             chemin_minimal=chemin[0]
                     return [i for i,j in chemin_minimal],min
 
-    def min_power_without_cc(self,src,dest):
-        "fonction qui renvoie min power sans vérifier que source et dest soient dans la même cc"
-        paths=self.find_path(src,dest)
-        min=paths[0][1]
-        chemin_minimal=paths[0][0]
-        for chemin in paths:
-             if chemin[1]<min:#chemin[1] est la puissance maximale requise pour le chemin
-                min=chemin[1]
-                chemin_minimal=chemin[0]
-        return [i for i,j in chemin_minimal],min
 
+
+    """ Pour cette fonction nous avons utilisé le module networkx car on arrivait pas à installer graphviz """
 
     def draw_graph(self):
         G = nx.Graph()
@@ -276,6 +348,22 @@ class Graph:
         nx.draw_networkx_edge_labels(G, pos, edge_labels=nx.get_edge_attributes(G, 'weight'))
         nx.draw_networkx_labels(G, pos)
         plt.show()
+
+
+    def min_power_kruskal(self,minimal_graph,src,dest):
+        """ cette fonction commence par trouver le chemin entre src et dest (qui est unique car c'est un arbre)
+        puis on regarde la puissance minimale requise pour pouvoir emprunter ce chemin """
+        chemin=dfs(minimal_graph,src,dest,[])
+        #dfs renvoie une liste de chemin et de puissances pour emprunter chaque arête
+        max=chemin[0][1]
+        List=[]
+        for i in chemin:
+            List.append(i[0])
+            if i[1]>max:
+                max=i[1]
+        return max,List
+
+
 
 def graph_from_file(filename):
     """
@@ -313,3 +401,73 @@ def graph_from_file(filename):
             g1.add_edge(tableau[i][0],tableau[i][1],tableau[i][2],tableau[i][3])
 
     return g1
+
+
+
+class UnionFind():
+
+    def __init__(self):
+        self.dico = {}
+
+    def makeSet(self,elt):
+        self.dico[elt]=elt
+
+    def find(self,elt):
+        if self.dico[elt]!=elt:
+            self.dico[elt] = self.find(self.dico[elt])
+        return self.dico[elt]
+
+    def union(self,e1,e2):
+        i = self.find(e1)
+        j = self.find(e2)
+        self.dico[i]=j
+        return None
+
+
+
+def takeThird(element):
+    return element[2]
+
+
+def kruskal(g):            #complexité en O((#E)**2)
+    A = Graph(g.nodes)     #l'arbre couvrant est constitué des mêmes noeuds que g
+    list = []              #on initialise la liste des arrêtes
+    for node in g.nodes:
+        list += [[node,g.graph[node][i][0],g.graph[node][i][1]] for i in range(len(g.graph[node]))]
+    list.sort(key=takeThird)     #la liste triée contient des doublons mais ce n'est pas un problème dans notre cas
+    E = UnionFind()
+    for node in g.nodes:
+        E.makeSet(node)
+    counter = 0
+    for edge in list:                     # on parcourt la liste triée des arrêtes
+        if counter < g.nb_nodes-1:    #si counter = g.nb_nodes, l'arbre couvrant est terminé
+            if E.find(edge[0])!=E.find(edge[1]):       #on vérifie que les deux sommets ne sont pas la même composante connexe sinon on crée un cycle
+                A.add_edge(edge[0],edge[1],edge[2],dist=1)
+                E.union(edge[0],edge[1])      #les deux sommets sont désormais dans la même composante connexe
+                counter+=1
+        else:
+            break
+    return A
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
