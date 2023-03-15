@@ -68,7 +68,7 @@ class Graph:
 
 
 
-    def get_path_with_power(self, src, dest, power):      #complexité en O((#V)**2)
+    def get_path_with_power(self, src, dest, power):      #complexité en O(((#V)+(#E))log(#V))
         """regarder si src et dest sont dans la même composante connexe
         s'ils sont dans la même composante connexe cela nous garantit que l'algo s'arrête car on atteindra la destination
         (sous réserve de ne pas tourner en rond : il faudra donc enregistrer les noeuds deja visités)"""
@@ -119,7 +119,7 @@ class Graph:
 
         return None,None
 
-    def get_path_with_power_without_cc(self, src, dest, power):  #complexité en O((#V)**2)
+    def get_path_with_power_without_cc(self, src, dest, power):  #complexité en O(((#V)+(#E))log(#V))
         "dans cette version on ne vérifie pas que la source et la destination appartiennent à la même composante connexe"
         "c'est utile pour la deuxieme séance"
         M = set()
@@ -350,7 +350,7 @@ class Graph:
         plt.show()
 
 
-    def min_power_kruskal(self,minimal_graph,src,dest): #complexité en O((#V**2)*#E
+    def min_power_kruskal(self,minimal_graph,src,dest): #complexité en O((#V**2)*#E)
         """ cette fonction commence par trouver le chemin entre src et dest (qui est unique car c'est un arbre)
         puis on regarde la puissance minimale requise pour pouvoir emprunter ce chemin """
         chemin=dfs(minimal_graph,src,dest,[])
