@@ -45,7 +45,7 @@ class Graph:
                 output += f"{source}-->{destination}\n"
         return output
 
-    def add_edge(self, node1, node2, power_min, dist=1):
+    def add_edge(self, node1, node2, power_min, dist=1):    #complexité en O(#voisins de node1)
         """
         Adds an edge to the graph. Graphs are not oriented, hence an edge is added to the adjacency list of both end nodes.
 
@@ -68,7 +68,7 @@ class Graph:
 
 
 
-    def get_path_with_power(self, src, dest, power):
+    def get_path_with_power(self, src, dest, power):      #complexité en O(((#V)+(#E))log(#V))
         """regarder si src et dest sont dans la même composante connexe
         s'ils sont dans la même composante connexe cela nous garantit que l'algo s'arrête car on atteindra la destination
         (sous réserve de ne pas tourner en rond : il faudra donc enregistrer les noeuds deja visités)"""
@@ -119,7 +119,7 @@ class Graph:
 
         return None,None
 
-    def get_path_with_power_without_cc(self, src, dest, power):
+    def get_path_with_power_without_cc(self, src, dest, power):  #complexité en O(((#V)+(#E))log(#V))
         "dans cette version on ne vérifie pas que la source et la destination appartiennent à la même composante connexe"
         "c'est utile pour la deuxieme séance"
         M = set()
@@ -164,7 +164,7 @@ class Graph:
 
 
 
-    def connected_components(self):
+    def connected_components(self):    #complexité en O(#V+#E)
         """fonction qui renvoie l'ensemble des composantes connexes d'un graphe"""
 
         explored = [] #explored permettra de mémoriser les noeuds déjà vu
@@ -189,7 +189,7 @@ class Graph:
 
 
 
-    def connected_components_set(self):
+    def connected_components_set(self):   #complexité en O(#V+#E)
         """
         The result should be a set of frozensets (one per component),
         For instance, for network01.in: {frozenset({1, 2, 3}), frozenset({4, 5, 6, 7})}
@@ -197,7 +197,7 @@ class Graph:
         return set(map(frozenset, self.connected_components()))
 
 
-    def exist_path(self,src,dest,power,visited):
+    def exist_path(self,src,dest,power,visited):    #complexité en O((#V)**2)
         """ fonction qui fait un dfs et renvoie s'il existe un chemin et si oui renvoie ce chemin"""
         """ cette fonction est utlisée dans min_power"""
         visited.append(src)
@@ -212,7 +212,7 @@ class Graph:
                             return result
             return False,None
 
-    def min_power(self,src,dest):
+    def min_power(self,src,dest):   #complexité en O(log(#V)*(#V**2))
         """on commence par stocker toutes les puissances dans une liste"""
         puissances_liste=[]
         for i in self.graph:
@@ -272,7 +272,7 @@ class Graph:
     """ Les fonctions find path et min_power2 etaient une première approche pour min power mais la complexité
     est beaucoup trop elevee donc on a refait min power"""
 
-    def find_path(self, src, dest, path=[],puissance=0):
+    def find_path(self, src, dest, path=[],puissance=0):  #complexité en O(#V!)
 
         """ fonction qui renvoie l'ensemble des chemins possibles allant de src à dest (sans contrainte de puissance)
         sous forme de liste de couple (chemin,max puissance requis pour passer par ce chemin)"""
@@ -309,7 +309,7 @@ class Graph:
         # Retourner tous les chemins possibles
         return possible_paths
 
-    def min_power2(self, src, dest):
+    def min_power2(self, src, dest):           #complexité en O(#V!)
         """Attention cette version a une complexité trop importante"""
 
         """ avec la fonction find_path on va trouver tous les chemins allant de src à dest
@@ -350,7 +350,7 @@ class Graph:
         plt.show()
 
 
-    def min_power_kruskal(self,minimal_graph,src,dest):
+    def min_power_kruskal(self,minimal_graph,src,dest): #complexité en O((#V**2)*#E)
         """ cette fonction commence par trouver le chemin entre src et dest (qui est unique car c'est un arbre)
         puis on regarde la puissance minimale requise pour pouvoir emprunter ce chemin """
         chemin=dfs(minimal_graph,src,dest,[])
@@ -429,7 +429,7 @@ def takeThird(element):
     return element[2]
 
 
-def kruskal(g):            #complexité en O((#E)**2)
+def kruskal(g):            #complexité en O((#E)*(#V))
     A = Graph(g.nodes)     #l'arbre couvrant est constitué des mêmes noeuds que g
     list = []              #on initialise la liste des arrêtes
     for node in g.nodes:
