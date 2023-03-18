@@ -144,7 +144,7 @@ sachant qu'il y a  500000  trajets, il faudrait  30.948761666666552  heures pour
 
 """ on ne fait que pour les 1000 premiers trajets car sinon ca peut durer des heures"""
 
-"""
+
 
 for j in range(9):
     g=graph_from_file(data_path+list_filenames_network[j])
@@ -158,18 +158,16 @@ for j in range(9):
     List_puissances =[str(i) for i in tableau[0]]
     g_kruskal=kruskal(g)
 
-    for i in range(1,min(len(tableau),1000)):
+    for i in range(1,min(len(tableau),100)):
 
         src=tableau[i][0]
         dest=tableau[i][1]
         pow,chemin=g.min_power_kruskal(g_kruskal,src,dest)
         List_puissances.append(pow)
 
-    with open(data_path + "routes.{}.out".format(j),"w") as file:
+    with open(data_path + "routes.{}.out".format(j+1),"w") as file:
         for i in range(0,len(List_puissances)):
             file.write(str(List_puissances[i])+" \n ")
-
-"""
 
 
 

@@ -14,13 +14,13 @@ def voisin(graph,x):
 def dfs(graph,src,dest,visited,power=0,pere=0):
     """fonction qui fait un dfs pour trouver le chemin entre 2 neouds (src et dest)
     Cette fonction renvoie une liste de couple formé du chemin et de la puissance nécessaire pour emprunter chaque arête """
-    visited.append((src,power))
+
     if src==dest:
-        return visited
+        return visited + [(src,power)]
     else :
-        for i in graph.graph[src]:
-            if i[0]!=pere:
-                result=dfs(graph,i[0],dest,visited,i[1],pere=src)
+        for noeud in graph.graph[src]:
+            if noeud[0]!=pere:
+                result=dfs(graph,noeud[0],dest,visited+[(src,power)],noeud[1],pere=src)
                 if result !=None:
                      return result
         return None
@@ -445,8 +445,6 @@ def kruskal(g):            #complexité en O((#E)**2)
                 A.add_edge(edge[0],edge[1],edge[2],dist=1)
                 E.union(edge[0],edge[1])      #les deux sommets sont désormais dans la même composante connexe
                 counter+=1
-        else:
-            break
     return A
 
 
