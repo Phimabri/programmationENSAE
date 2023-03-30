@@ -16,8 +16,12 @@ file_name2 = "network.1.in"
 list_filenames_routes=["routes.{}.in".format(i) for i in range(1,11)]
 list_filenames_network=["network.{}.in".format(i) for i in range(1,11)]
 
-
-
+"""
+g=graph_from_file(data_path+file_name2)
+g_kruskal=kruskal(g)
+kruskal_dict=dfs(g_kruskal,1)
+g_kruskal.draw_graph()
+print(g.min_power_kruskal(kruskal_dict,6,11))"""
 
 """ ************************** Seance 2 ****************************************"""
 
@@ -145,7 +149,7 @@ sachant qu'il y a  500000  trajets, il faudrait  30.948761666666552  heures pour
 """ on ne fait que pour les 1000 premiers trajets car sinon ca peut durer des heures"""
 
 
-
+"""
 for j in range(9):
     g=graph_from_file(data_path+list_filenames_network[j])
     with open(data_path+list_filenames_routes[j], "r") as file:
@@ -157,19 +161,23 @@ for j in range(9):
 
     List_puissances =[str(i) for i in tableau[0]]
     g_kruskal=kruskal(g)
+    kruskal_dict=dfs(g_kruskal,1)
 
-    for i in range(1,min(len(tableau),100)):
+    for i in range(1,len(tableau)):
 
         src=tableau[i][0]
         dest=tableau[i][1]
-        pow,chemin=g.min_power_kruskal(g_kruskal,src,dest)
+        pow,chemin=g.min_power_kruskal(kruskal_dict,src,dest)
         List_puissances.append(pow)
 
     with open(data_path + "routes.{}.out".format(j+1),"w") as file:
         for i in range(0,len(List_puissances)):
             file.write(str(List_puissances[i])+" \n ")
 
+"""
 
+""" Toutes les puissances minimales pour tous les trajets ont été calculées de tous les fichiers routes ont été calculés
+en moins de 15 min"""
 
 
 

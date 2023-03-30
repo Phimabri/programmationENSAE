@@ -11,7 +11,7 @@ def voisin(graph,x):
         vois.append((i[0],i[1],i[2]))
     return vois
 
-def dfs(graph,src,dest,visited,power=0,pere=0):
+def find_path_kruskal(graph,src,dest,visited,power=0,pere=0):
     """fonction qui fait un dfs pour trouver le chemin entre 2 neouds (src et dest)
     Cette fonction renvoie une liste de couple formé du chemin et de la puissance nécessaire pour emprunter chaque arête """
 
@@ -25,6 +25,53 @@ def dfs(graph,src,dest,visited,power=0,pere=0):
                      return result
         return None
 
+def dfs(graph,src,dict={},pere=0,cpt=0,power=0):
+    """fonction qui fait un dsf et stock dans un dictionnaire la profondeur de chaque noeud par rapport à la racine
+        son père et la puissance entre le père et le fils """
+    dict[src]=[cpt,pere,power]
+    for noeud in graph.graph[src]:
+        if noeud[0]!=pere:
+            dfs(graph,noeud[0],dict,src,cpt+1,noeud[1])
+    return dict
+
+def find_path_kruskal2(dict,src,dest):
+    """ on va regarder si src et dest sont à la même profondeur, si ce n'est pas le cas on remonte jusqu'à ce qu'ils
+    soient à la même profondeur. Après on remonte jusqu'à ce qu'ils aient le même père """
+    src_tmp=src
+    dest_tmp=dest
+    liste_gauche =[[src,0]]
+    liste_droite=[[dest,0]]
+    profondeur_src=dict[src][0]
+    profondeur_dest=dict[dest][0]
+
+    while profondeur_src!=profondeur_dest:
+        if profondeur_src>profondeur_dest:
+            liste_gauche.append([dict[src_tmp][1],dict[src_tmp][2]])
+            src_tmp=dict[src_tmp][1]
+            profondeur_src-=1
+        else :
+            liste_droite.append([dict[dest_tmp][1],dict[dest_tmp][2]])
+            dest_tmp=dict[dest_tmp][1]
+            profondeur_dest-=1
+    #on fait les deux cas où on a juste remonté un coté de l'arbre (ie la src/dest est un descendant direct de la src/dest)
+    if src_tmp==dest:
+        return liste_gauche
+    if dest_tmp==src:
+        return liste_droite
+
+    else:
+        while src_tmp!=dest_tmp:
+
+            liste_gauche.append([dict[src_tmp][1],dict[src_tmp][2]])
+            src_tmp=dict[src_tmp][1]
+
+            liste_droite.append([dict[dest_tmp][1],dict[dest_tmp][2]])
+            dest_tmp=dict[dest_tmp][1]
+            
+        liste_droite.reverse()
+
+        liste_droite.remove(liste_droite[0])
+        return liste_gauche+liste_droite
 
 class Graph:
     def __init__(self, nodes=[]):
@@ -350,10 +397,10 @@ class Graph:
         plt.show()
 
 
-    def min_power_kruskal(self,minimal_graph,src,dest): #complexité en O((#V**2)*#E)
+    def min_power_kruskal(self,kruskal_dict,src,dest): #complexité en O((#V**2)*#E)
         """ cette fonction commence par trouver le chemin entre src et dest (qui est unique car c'est un arbre)
         puis on regarde la puissance minimale requise pour pouvoir emprunter ce chemin """
-        chemin=dfs(minimal_graph,src,dest,[])
+        chemin=find_path_kruskal2(kruskal_dict,src,dest)
         #dfs renvoie une liste de chemin et de puissances pour emprunter chaque arête
         max=chemin[0][1]
         List=[]
