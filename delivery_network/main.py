@@ -25,7 +25,7 @@ print(g.min_power_kruskal(kruskal_dict,6,11))"""
 
 """ ************************** Seance 2 ****************************************"""
 
-""" *********************************** Question 15 *******************************************"""
+""" *********************************** Question 10 *******************************************"""
 
 
 "on va tester pour un certain nombre de trajets le temps que ca prend pour calculer la puissance minimale"
@@ -97,7 +97,7 @@ for i in range(0,9):
 
 
     t1_start = perf_counter()
-    g.min_power_kruskal(g_kruskal,src1,dest1)
+    g.min_power_kruskal_1(g_kruskal,src1,dest1)
     #print(g3.min_power(src2,dest2))
     t1_stop=perf_counter()
 
@@ -105,7 +105,6 @@ for i in range(0,9):
     print("sachant qu'il y a ", tableau[0][0]," trajets, il faudrait ", tableau[0][0]*(t1_stop-t1_start)/(60*60)," heures pour tous les trajets")
 
 """
-
 """il a fallu  4.415999999896059e-06  secondes pour trouver un trajet minimale  pour la route  1
 sachant qu'il y a  140  trajets, il faudrait  1.7173333332929116e-07  heures pour tous les trajets
 
@@ -149,6 +148,16 @@ sachant qu'il y a  500000  trajets, il faudrait  30.948761666666552  heures pour
 """ on ne fait que pour les 1000 premiers trajets car sinon ca peut durer des heures"""
 
 
+
+
+
+
+"""
+
+En dessous, on utilise la version optimisee de min_power avec kruskal (deuxieme version de min_power_kruskal),
+On arrive à calculer l'ensemble des puissances minimales pour tous les fichiers routes en moins de 15min
+
+"""
 """
 for j in range(9):
     g=graph_from_file(data_path+list_filenames_network[j])
@@ -176,7 +185,7 @@ for j in range(9):
 
 """
 
-""" Toutes les puissances minimales pour tous les trajets ont été calculées de tous les fichiers routes ont été calculés
+""" Toutes les puissances minimales pour tous les trajets de tous les fichiers routes ont été calculés
 en moins de 15 min"""
 
 

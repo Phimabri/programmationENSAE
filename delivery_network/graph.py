@@ -11,16 +11,18 @@ def voisin(graph,x):
         vois.append((i[0],i[1],i[2]))
     return vois
 
-def find_path_kruskal(graph,src,dest,visited,power=0,pere=0):
+def find_path_kruskal_1(graph,src,dest,visited,power=0,pere=0):
     """fonction qui fait un dfs pour trouver le chemin entre 2 neouds (src et dest)
     Cette fonction renvoie une liste de couple formé du chemin et de la puissance nécessaire pour emprunter chaque arête """
 
+    """ c'etait une premiere approche naive pour trouver le chemin mais le temps de calcul avec cette méthode est trop
+    longue (environ 10 heures)"""
     if src==dest:
         return visited + [(src,power)]
     else :
         for noeud in graph.graph[src]:
             if noeud[0]!=pere:
-                result=dfs(graph,noeud[0],dest,visited+[(src,power)],noeud[1],pere=src)
+                result=find_path_kruskal_1(graph,noeud[0],dest,visited+[(src,power)],noeud[1],pere=src)
                 if result !=None:
                      return result
         return None
@@ -37,6 +39,8 @@ def dfs(graph,src,dict={},pere=0,cpt=0,power=0):
 def find_path_kruskal2(dict,src,dest):
     """ on va regarder si src et dest sont à la même profondeur, si ce n'est pas le cas on remonte jusqu'à ce qu'ils
     soient à la même profondeur. Après on remonte jusqu'à ce qu'ils aient le même père """
+
+    """ version finale pour trouver le chemin entre la src et le dest """
     src_tmp=src
     dest_tmp=dest
     liste_gauche =[[src,0]]
@@ -67,11 +71,15 @@ def find_path_kruskal2(dict,src,dest):
 
             liste_droite.append([dict[dest_tmp][1],dict[dest_tmp][2]])
             dest_tmp=dict[dest_tmp][1]
-            
+
         liste_droite.reverse()
 
         liste_droite.remove(liste_droite[0])
         return liste_gauche+liste_droite
+
+
+
+
 
 class Graph:
     def __init__(self, nodes=[]):
@@ -278,9 +286,9 @@ class Graph:
                 power=puissances_liste[a]
                 #puissances_exploree permet d'eviter de devoir parcourir tout le graphe à nouveau quand la puissance
                 # a deja ete exploree (car il y a des doublons dans la liste des puissances)
-                for i in puissances_exploree:
-                    if i[0]==power:
-                        if i[1]:
+                for puissance in puissances_exploree:
+                    if puisance[0]==power:
+                        if puisance[1]:
                             fin=a
                         else :
                             debut=a
@@ -297,9 +305,9 @@ class Graph:
             while debut+1!=fin:
                 a=int((debut+fin)/2)
                 power=puissances_liste[a]
-                for i in puissances_exploree:
-                    if i[0]==power:
-                        if i[1]:
+                for puissance in puissances_exploree:
+                    if puisance[0]==power:
+                        if puissance[1]:
                             fin=a
                         else :
                             debut=a
@@ -397,9 +405,30 @@ class Graph:
         plt.show()
 
 
-    def min_power_kruskal(self,kruskal_dict,src,dest): #complexité en O((#V**2)*#E)
+    def min_power_kruskal_1(self,minimal_graph,src,dest): #complexité en O((#V**2)*#E)
+        """ premiere  approche pour calculer la puissance minimale (temps environ 10h pour un fichier route en entier)"""
+
         """ cette fonction commence par trouver le chemin entre src et dest (qui est unique car c'est un arbre)
         puis on regarde la puissance minimale requise pour pouvoir emprunter ce chemin """
+        chemin=find_path_kruskal_1(minimal_graph,src,dest,[])
+        #dfs renvoie une liste de chemin et de puissances pour emprunter chaque arête
+        max=chemin[0][1]
+        List=[]
+        for i in chemin:
+            List.append(i[0])
+            if i[1]>max:
+                max=i[1]
+        return max,List
+
+
+    def min_power_kruskal_2(self,kruskal_dict,src,dest): #complexité en O((#V**2)*#E)
+        """ approche plus optimisee, on calcule la puisance minimale pour l'ensemble d'un fichier route en l'ordre de la minute"""
+
+        """ cette fonction commence par trouver le chemin entre src et dest (qui est unique car c'est un arbre)
+        puis on regarde la puissance minimale requise pour pouvoir emprunter ce chemin
+
+        elle prend en entree le dictionnaire qui stock les infos de l'arbre couvrant calcule par kruskal
+        """
         chemin=find_path_kruskal2(kruskal_dict,src,dest)
         #dfs renvoie une liste de chemin et de puissances pour emprunter chaque arête
         max=chemin[0][1]
