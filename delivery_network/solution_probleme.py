@@ -1,10 +1,10 @@
 import random
-
+import numpy as np
 
 # Paramètres de l'algorithme génétique
-taille_population = 100  # taille de la population
+taille_population = 20 # taille de la population
 taux_mutation = 0.1  # taux de mutation
-nombre_iterations = 50  # nombre d'itérations
+nombre_iterations = 15  # nombre d'itérations
 
 
 
@@ -89,7 +89,7 @@ class ResolutionProbleme():
         for trajet in self.liste_trajets:
 
             #on ajoute à valeur le profit d'un trajet
-            self.valeurs.append(trajet[1])
+            self.valeurs.append(trajet[2])
             #on fait ensuite une dichotomie pour trouver le prix minimal du camion à associer à ce trajet
             puissance=self.liste_puissances[cpt]
             debut_tmp=0
@@ -100,8 +100,9 @@ class ResolutionProbleme():
                     fin_tmp=milieu
                 else:
                     debut_tmp=milieu
-            self.poids.append(self.liste_camions[milieu][1])
+            self.poids.append(self.liste_camions[fin_tmp][1])
             cpt+=1
+
 
     def EstTrivial(self):
         """ fonction qui renvoie un booléen pour savoir si le problème est trivial,
@@ -114,6 +115,31 @@ class ResolutionProbleme():
                 return True
         return False
 
+    def brute_force(self):
+
+        """premiere approche en calculant toutes les solutions et en choisissant celle avec le meilleur prix"""
+        n = len(self.valeurs)
+        meilleure_valeur = 0
+        meilleure_combinaison = []
+
+        for i in range(2**n):
+            valeur_totale = 0
+            poids_total = 0
+            combinaison = []
+
+            for j in range(n):
+                if i // 2**j % 2 == 1:
+                    valeur_totale += self.valeurs[j]
+                    poids_total += self.poids[j]
+                    combinaison.append(j)
+
+            if poids_total <= self.budget and valeur_totale > meilleure_valeur:
+                meilleure_valeur = valeur_totale
+                meilleure_combinaison = combinaison
+
+        return meilleure_valeur, meilleure_combinaison
+
+
 
     def solution_pseudo_naive(self):
         """ on va trier tous les objets en fonction de leur rapport valeur/poids et on prendra les meilleurs
@@ -125,15 +151,117 @@ class ResolutionProbleme():
         Liste_ratio= sorted(Liste_ratio, key=lambda x:x[0],reverse=True)
         poids_total=0
         solution=[]
+        utilite=0
         cpt=0
-        while poids_total<=self.budget:
+        while poids_total<=self.budget and cpt<len(Liste_ratio):
             solution.append(Liste_ratio[cpt][1])
             poids_total+=self.poids[Liste_ratio[cpt][1]]
+            utilite+=self.valeurs[Liste_ratio[cpt][1]]
             cpt+=1
         #il faut enlever le dernier poids car sinon on dépasse le budget
         dernier_poids=solution.pop()
-        return solution, poids_total-self.poids[dernier_poids]
+        return solution, utilite-self.valeurs[dernier_poids],poids_total-self.poids[dernier_poids]
 
+
+    """**********************************************************************************************************"""
+
+    """ solution_pseudo_naive_2 est une fonction qui renvoie la meme chose que solution_pseudo_naive plus une liste
+    d'indices des trajets assez intéressants mais pas assez bon pour etre pris.
+
+    Par exemple si on chosit de prendre les 100 premiers trajets (triés) car apres on dépasse le budget.
+    Alores solution_pseudo_naive_2 renvoie les 100 premiers trajets, l'utilité et les camions allant de 100 à 200
+
+    Cette fonciton est utile pour solution_aleatoire """
+
+
+
+    def solution_pseudo_naive_2(self):
+        """ on va trier tous les objets en fonction de leur rapport valeur/poids et on prendra les meilleurs
+        Cela ne garantit pas une solution optimale mais ça garantit une solution assez proche """
+        Liste_ratio = []
+        for i in range(len(self.poids)):
+            #on stock le ratio des valeurs/poids et l'indice de l'objet concerne
+            Liste_ratio.append((self.valeurs[i]/self.poids[i],i))
+        Liste_ratio= sorted(Liste_ratio, key=lambda x:x[0],reverse=True)
+        poids_total=0
+        solution=[]
+        utilite=0
+        cpt=0
+        camions_supplementaires=[]
+        while poids_total<=self.budget and cpt<len(Liste_ratio):
+            solution.append(Liste_ratio[cpt][1])
+            poids_total+=self.poids[Liste_ratio[cpt][1]]
+            utilite+=self.valeurs[Liste_ratio[cpt][1]]
+            cpt+=1
+        #il faut enlever le dernier poids car sinon on dépasse le budget
+        dernier_poids=solution.pop()
+
+        for i in range(cpt,min(cpt+100,len(Liste_ratio))):
+            camions_supplementaires.append(Liste_ratio[i][1])
+        return solution, camions_supplementaires, utilite-self.valeurs[dernier_poids]
+
+
+    def utilite_solution(self,solution):
+        """ cette fonction renvoie l'utilité d'une solution et le poids_total pour une solution sous
+        la forme d'une liste d'indices"""
+        utilite=0
+        poids_total=0
+        for indice in solution:
+            utilite+=self.valeurs[indice]
+            poids_total+=self.poids[indice]
+        if poids_total>self.budget:
+            return solution,0,poids_total
+        else:
+            return solution,utilite,poids_total
+
+
+    def solution_aleatoire(self):
+        """ dans cette version on commence par generer une solution assez proche avec l'algo pseudo naif puis on va
+        retirer et ajouter des elements de maniere aleatoire """
+        solution,camions_supplementaires,utilite=self.solution_pseudo_naive_2()
+        solution,eval,poids_solution=self.utilite_solution(solution)
+        solution_tmp=solution.copy()
+        max=eval
+        solution_finale=solution.copy()
+        n1=int(len(solution)/4)
+        n2=n1+1 #il y a des fois ou la longueur de la solution diminue donc pour pas faire IndexOutOfRange on met à jour la taille avec n2
+        if camions_supplementaires==[]:#dans ce cas la liste contient tous les objets
+            return self.utilite_solution(solution)
+
+        else:
+            for i in range(500):
+                solution_tmp=solution.copy()
+                N=random.randint(0,10) #nombre d'objets qu'on va changer
+                if n2<n1:
+                    n=n2
+                else:
+                    n=n1
+                for j in range(N):
+                    a=random.randint(3*n,(4*n)-1)
+                    if a < len(solution_tmp):
+                        solution_tmp.remove(solution_tmp[a])
+
+                     #on fait l'hyp arbitraire de changer que le dernier quart des chemins
+                solution_tmp,eval,poids_total=self.utilite_solution(solution_tmp)
+                while poids_total<=self.budget:
+                    b=random.randint(0,len(camions_supplementaires)-1)
+                    solution_tmp.append(camions_supplementaires[b]) #on ajoute le nouveau camion
+                    poids_total+=self.poids[camions_supplementaires[b]]
+                    eval += self.valeurs[camions_supplementaires[b]]
+                eval-=self.valeurs[camions_supplementaires[b]]
+                del solution_tmp[-1]#on est obligé de pop le dernier element sinon le poids depasse
+
+                n2=int(len(solution_tmp)/4)
+                if eval>max :
+                    max=eval
+                    solution=solution_tmp.copy()
+                    solution_finale=solution_tmp.copy()
+            return self.utilite_solution(solution_finale)
+
+
+
+        """on va faire la supposition totalement arbitraire de ne pas toucher aux N premiers indices de la solution
+        vu qu'ils sont tries de maniere croissante ce sont ceux avec le meilleure ratio valeur/prix """
 
 
     """************************************* Algo genetique **********************************"""
@@ -143,48 +271,43 @@ class ResolutionProbleme():
     def evaluation(self,solution):
         poids_total = 0
         valeur_totale = 0
+
         for i in range(len(solution)):
             if solution[i] == 1: #si on prend le camion i
                 poids_total += self.poids[i]
                 valeur_totale += self.valeurs[i]
-        if poids_total > self.budget:
-            return 0
-        else:
-            return valeur_totale
 
-    def algorithme_genetique(self):
-        """les parametres de l'algo on ete defini au haut du fichier """
+        if poids_total>self.budget:
+            return solution,0
+
+        return solution, valeur_totale
 
 
-        """on choisit au hasard au debut la population"""
+    def algorithme_genetique_random(self):
+        """les parametres de l'algo ont ete definis en haut du fichier """
+
+
+        """Dans cette version on choisit au hasard au debut la population"""
         population = []
         for i in range(taille_population):
             solution = []
             for i in range(len(self.poids)):
                 a=random.randint(0,1)
                 solution.append(a)
-            population.append(solution)
+            population.append((solution,0))
 
-        # Évaluation de la population
-        evals = []
-        for solution in population:
-            eval = self.evaluation(solution)
-            evals.append((solution, eval))
 
-        population=evals
 
         for iteration in range(nombre_iterations):
-
-            evals = sorted(population, key=lambda x: x[1], reverse=True)
-
+            # Évaluation de la population
+            population = sorted(population, key=lambda x: x[1], reverse=True)
             #choix des parents
             #on fait "reproduire" les solutions avec la meilleure evaluation
             parents = []
             for i in range(int(taille_population / 2)):
-                parent1 = random.choice(evals[:int(taille_population / 4)])[0]
-                parent2 = random.choice(evals[:int(taille_population / 4)])[0]
+                parent1 = random.choice(population[:int((taille_population) / 4)])[0]
+                parent2 = random.choice(population[:int((taille_population) / 4)])[0]
                 parents.append((parent1, parent2))
-
 
             # Croisement
             #on mélange la génétique des deux parents pour avoir la genetique de l'enfant
@@ -194,36 +317,98 @@ class ResolutionProbleme():
                 point_croisement = random.randint(1, len(parent1) - 1)
                 for i in range(point_croisement):
                     enfant.append(parent1[i])
+
                 for i in range(point_croisement,len(parent1)):
                     enfant.append(parent2[i])
                 enfants.append(enfant)
 
             # Mutation
             for enfant in enfants:
-
                 for i in range(len(enfant)):
                     if random.random() < taux_mutation:
                         enfant[i] = 1 - enfant[i]
 
             #on remplace les solutions moins bonnes par les solutions enfants
             nouvelle_population = []
-            for i in range(int(taille_population / 2)):
-                nouvelle_population.append(evals[i][0])
+            for i in range(int((taille_population )/ 2)):
+                nouvelle_population.append(population[i])
             for enfant in enfants:
-                eval = self.evaluation(enfant)
+                eval = self.evaluation(enfant)[1]
                 nouvelle_population.append((enfant, eval))
             population = nouvelle_population
 
+        meilleure_solution = sorted(population, key=lambda x: x[1], reverse=True)[0]
+        return meilleure_solution
+
+
+
+    def algorithme_genetique(self):
+
+        """Dans cette version on commence par trouver une solution minimale assez proche
+        puis on applique l'algorithme genetique à partir de la solution approchee"""
+
+        solution_naive,utilite,poids_total = self.solution_pseudo_naive()
+        #on convertit la solution trouvee (qui est une liste d'indice) en une liste de 0 et 1
+        solution = np.zeros(len(self.poids))
+        for indice in solution_naive:
+            solution[indice]=1
+
+        population=[self.evaluation(solution)]
+        for i in range(taille_population):
+            individu=[]
+            for j in range(len(solution)):
+                if random.random() < taux_mutation:
+                    individu.append(1-solution[j])
+                else:
+                    individu.append(solution[j])
+            population.append(self.evaluation(individu))
+
+        for iteration in range(nombre_iterations):
+            # Évaluation de la population
+            population = sorted(population, key=lambda x: x[1], reverse=True)
+            #choix des parents
+            #on fait "reproduire" les solutions avec la meilleure evaluation
+            parents = []
+            for i in range(int(taille_population / 2)):
+                parent1 = random.choice(population[:int((taille_population+1) / 4)])[0]
+                parent2 = random.choice(population[:int((taille_population+1) / 4)])[0]
+                parents.append((parent1, parent2))
+
+            # Croisement
+            #on mélange la génétique des deux parents pour avoir la genetique de l'enfant
+            enfants = []
+            for parent1, parent2 in parents:
+                enfant=[]
+                point_croisement = random.randint(1, len(parent1) - 1)
+                for i in range(point_croisement):
+                    enfant.append(parent1[i])
+
+                for i in range(point_croisement,len(parent1)):
+                    enfant.append(parent2[i])
+                enfants.append(enfant)
+
+            # Mutation
             for enfant in enfants:
-                 eval = self.evaluation(enfant)
-                 population.append((enfant, eval))
+                for i in range(len(enfant)):
+                    if random.random() < taux_mutation:
+                        enfant[i] = 1 - enfant[i]
+
+            #on remplace les solutions moins bonnes par les solutions enfants
+            nouvelle_population = []
+            for i in range(int((taille_population+1) / 2)):
+                nouvelle_population.append(population[i])
+            for enfant in enfants:
+                eval = self.evaluation(enfant)[1]
+                nouvelle_population.append((enfant, eval))
+            population = nouvelle_population
 
 
-            meilleure_solution = sorted(population, key=lambda x: x[1], reverse=True)[0]
-            print(meilleure_solution)
-
+        meilleure_solution = sorted(population, key=lambda x: x[1], reverse=True)[0]
 
         return meilleure_solution
+
+
+
 
 
 

@@ -169,6 +169,8 @@ for j in range(9):
         tableau =[list(map(int, i)) for i in list_of_lists]
 
     List_puissances =[str(i) for i in tableau[0]]
+    t1_start = perf_counter()
+
     g_kruskal=kruskal(g)
     kruskal_dict=dfs(g_kruskal,1)
 
@@ -176,17 +178,21 @@ for j in range(9):
 
         src=tableau[i][0]
         dest=tableau[i][1]
-        pow,chemin=g.min_power_kruskal(kruskal_dict,src,dest)
+        pow,chemin=g.min_power_kruskal_2(kruskal_dict,src,dest)
         List_puissances.append(pow)
+    t1_stop = perf_counter()
 
-    with open(data_path + "routes.{}.out".format(j+1),"w") as file:
-        for i in range(0,len(List_puissances)):
-            file.write(str(List_puissances[i])+" \n ")
 
+    #with open(data_path + "routes.{}.out".format(j+1),"w") as file:
+    #    for i in range(0,len(List_puissances)):
+    #        file.write(str(List_puissances[i])+" \n ")
+
+
+    print("il a fallu ", t1_stop-t1_start ," secondes pour trouver toutes les puissances minimales pour la route ",i+1)
 """
 
 """ Toutes les puissances minimales pour tous les trajets de tous les fichiers routes ont été calculés
-en moins de 15 min"""
+en moins de 5min"""
 
 
 
