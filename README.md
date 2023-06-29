@@ -1,21 +1,9 @@
 # ENSAE 1A: projet de programmation
 
-Ce dépôt publique contient les ressources pour les étudiants pour le projet de programmation 1A sur l'optimisation d'un réseau de livraison. Pour la description du projet lui-même, se référer au PDF sur pamplemousse. 
+The aim of the project is to build a road delivery network for transporting goods between cities. The minimum power required on each road for trucks to use them needs to be considered. The project consists of two parts: calculating the minimum power for each route and optimizing the purchase of trucks to maximize the profit from the covered routes.
 
-Ce dépôt contient plusieurs dossiers et fichiers: 
-- le fichier 'install_graphviz.sh' permet d'installer graphviz sur sspcloud
-- le dossier 'delivery_network' contient le code principal (une base de code pour l'instant, que vous devrez compléter). C'est là qu'est la classe Graph que vous devez implémenter. C'est aussi là que vous mettrez les autres fichiers .py principaux au cours du projet. 
-- le dossier 'inputs' contient des jeux de données (graphes et ensembles de trajets) 
-- le dossier 'tests' contient les tests unitaires (des examples, à vous d'en faire d'autres !)
+Through this project we learn to optimize the computing time by using differents algorithm and approaches for a same problem. We also understand the specifities of each data structure and work a little on Graph Theory.
 
-## Format des fichiers d'input
 
-Le dossier input contient 2 types de fichiers : les fichiers network.x.in ($x \in \{00, 01, 02, 03, 04, 1, ..., 10\}$) qui contiennent les graphes et les fichiers routes.x.in ($x \in \{1, ..., 10\}$) qui contiennent des ensembles de trajets pour les graphes de $x$ correspondant. 
 
-La structure des fichiers network.x.in est la suivante : 
-- la première ligne est composée de deux entiers séparés par un espace : le nombre de sommets (n) et le nombre d'arêtes (m)
-- les m lignes suivantes représentent chacune une arête et sont composées de 3 ou 4 nombres séparés par des espaces: 'ville1 ville2 puissance [distance]', où ville1 et ville2 sont les sommets de l'arête, puissance est la puissance minimale requise pour passer sur l'arête, et distance (optionel) est la distance entre ville1 et ville2 sur l'arête. 
 
-La structure des fichiers routes.x.in est la suivante : 
-- la première ligne contient un entier qui correspond au nombres de trajets dans l'ensemble (T)
-- les T lignes suivantes contiennent chacune un trajet sous la forme 'ville1 ville2 utilité', où utilité est le profit acquis si le trajet correspondant est couvert. 
